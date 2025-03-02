@@ -52,7 +52,7 @@ EOF
 
     # Step 4: Wait for node startup
     echo "⏳ Waiting for the Hyperspace node to start..."
-    sleep 10
+    sleep 0
 
     # Step 5: Check if aios-cli is available
     echo "🔍 Checking if aios-cli is installed..."
