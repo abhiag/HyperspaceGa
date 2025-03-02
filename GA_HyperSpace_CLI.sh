@@ -54,10 +54,19 @@ screen -S hyperspace -d -m /root/start_hyperspace.sh
 echo "⏳ Waiting for the Hyperspace node to start..."
 sleep 10
 
-# Step 5: Check if aios-cli is available
+# Step 5: Check if aios-cli is installed
 echo "🔍 Checking if aios-cli is installed..."
-if ! command -v aios-cli &> /dev/null; then
-    echo "❌ aios-cli not found. Exiting."
+
+if ! command -v aios-cli &>/dev/null; then
+    echo "❌ aios-cli not found. Reinstalling..."
+    curl -s https://download.hyper.space/api/install | bash >> /root/hyperspace_install.log 2>&1
+    export PATH=$PATH:$HOME/.aios
+    source ~/.bashrc
+fi
+
+# Double-check after reinstall
+if ! command -v aios-cli &>/dev/null; then
+    echo "❌ aios-cli still not found. Exiting."
     exit 1
 fi
 
