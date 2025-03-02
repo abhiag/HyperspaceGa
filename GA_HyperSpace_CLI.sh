@@ -104,16 +104,16 @@ echo "🖥️ Fetching system information..."
 ~/.aios/aios-cli system-info
 
 # Step 13: Set Hive Tier
-echo "🏆 Setting your Hive tier to 3..."
-~/.aios/aios-cli hive select-tier 3 
+echo "🏆 Setting your Hive tier to 5..."
+~/.aios/aios-cli hive select-tier 5 
 
 # Step 14: Check Hive points in a loop every 10 seconds
 echo "📊 Checking your Hive points every 10 seconds..."
 echo "✅ HyperSpace Node setup complete!"
-echo "ℹ️ Use 'CTRL + A + D' to detach the screen and 'screen -r hyperspace' to reattach."
+echo "ℹ️ Use 'CTRL + A + D' to detach the screen and 'screen -r gaspace' to reattach."
 
 while true; do
-    echo "ℹ️ Press 'CTRL + A + D' to detach the screen, 'screen -r hyperspace' to reattach."
+    echo "ℹ️ Press 'CTRL + A + D' to detach the screen, 'screen -r gaspace' to reattach."
     ~/.aios/aios-cli hive points
     sleep 10
 done
