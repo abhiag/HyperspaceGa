@@ -119,3 +119,4 @@ while true; do
     aios-cli hive points
     sleep 10
 done
+done
