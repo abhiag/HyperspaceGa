@@ -67,6 +67,5 @@ echo "🚀 Creating a new 'gaspace' screen session..."
 screen -S gaspace -dm bash -c 'curl -O https://raw.githubusercontent.com/abhiag/HyperspaceGa/main/GA_HyperSpace_CLI.sh && chmod +x GA_HyperSpace_CLI.sh && ./GA_HyperSpace_CLI.sh'
 
 # Step 6: Wait until the session is listed, then switch
-while ! screen -list | grep -q "gaspace"; do sleep 1; done
+while ! screen -list | grep -q "gaspace"; do sleep 30; done
 screen -r gaspace
-done
