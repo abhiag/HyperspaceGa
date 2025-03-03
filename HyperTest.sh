@@ -70,4 +70,3 @@ screen -S gaspace -dm bash -c 'curl -O https://raw.githubusercontent.com/abhiag/
 while ! screen -list | grep -q "gaspace"; do sleep 1; done
 screen -r gaspace
 done
-done
