@@ -51,24 +51,22 @@ if command -v nvidia-smi &>/dev/null; then
             echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> ~/.bashrc
         fi
 
-        # Export inside script (fixes immediate PATH issue)
-        export PATH=/usr/local/cuda/bin:$PATH
-        export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+        # Manually update PATH for this script
+        export PATH="/usr/local/cuda/bin:$PATH"
+        export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
 
-        # Reload bashrc
+        # Source bashrc
         source ~/.bashrc
-        exec bash  # Ensure updated environment
 
-        # Debug: Print current paths
+        # Debugging: Verify path is updated
         echo "🔍 Checking if CUDA is in PATH after update..."
-        echo "PATH = $PATH"
-        echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
+        env | grep CUDA
 
         # Final check if nvcc works
         if command -v nvcc &>/dev/null; then
             echo "✅ CUDA path successfully added!"
         else
-            echo "❌ CUDA path not detected in PATH. Try manually running 'source ~/.bashrc' and rechecking."
+            echo "❌ CUDA path not detected. Try manually running 'source ~/.bashrc' and rechecking."
         fi
     else
         echo "❌ CUDA directory not found at $CUDA_PATH. Skipping CUDA path setup."
@@ -108,4 +106,3 @@ if [[ "$retry" != "y" && "$retry" != "Y" ]]; then
     echo "Exiting setup."
     exit 1
 fi
-done
