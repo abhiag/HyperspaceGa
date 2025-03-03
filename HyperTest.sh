@@ -25,7 +25,7 @@ EOF
     printf "   • X (formerly Twitter): https://x.com/GACryptoO\n"
     printf "${RESET}"
 
-  #!/bin/bash
+#!/bin/bash
 
 echo "🚀 Starting HyperSpace Node Setup..."
 
@@ -68,5 +68,7 @@ screen -S gaspace -dm bash -c 'curl -O https://raw.githubusercontent.com/abhiag/
 
 # Step 6: Wait until the session is listed, then switch
 while ! screen -list | grep -q "gaspace"; do sleep 1; done
+
+# Step 7: Attach to the screen session
 screen -r gaspace
-done
+
