@@ -39,13 +39,35 @@ EOF
             sudo apt-get update && sudo apt-get install -y cuda-toolkit
         fi
 
-        # Step 3: Add CUDA to PATH
+# Step 3: Add CUDA to PATH
+CUDA_PATH="/usr/local/cuda"
+
+if [ -d "$CUDA_PATH" ]; then
+    echo "✅ CUDA directory found at $CUDA_PATH. Adding to PATH..."
+
+    # Add to bashrc if not already present
+    if ! grep -q "/usr/local/cuda/bin" ~/.bashrc; then
         echo 'export PATH=/usr/local/cuda/bin:$PATH' >> ~/.bashrc
         echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> ~/.bashrc
-        source ~/.bashrc
-    else
-        echo "❌ No NVIDIA GPU found. Skipping CUDA installation."
     fi
+
+    # Reload bashrc and verify
+    source ~/.bashrc
+
+    # Debug: Print current paths
+    echo "🔍 Checking if CUDA is in PATH after update..."
+    echo "PATH = $PATH"
+    echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
+
+    # Final check if nvcc works
+    if command -v nvcc &>/dev/null; then
+        echo "✅ CUDA path successfully added!"
+    else
+        echo "❌ CUDA path not detected in PATH. Try manually running 'source ~/.bashrc' and rechecking."
+    fi
+else
+    echo "❌ CUDA directory not found at $CUDA_PATH. Skipping CUDA path setup."
+fi
 
     # Step 4: Check if screen session "gaspace" exists
     if screen -list | grep -q "gaspace"; then
