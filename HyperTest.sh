@@ -25,96 +25,49 @@ EOF
     printf "   • X (formerly Twitter): https://x.com/GACryptoO\n"
     printf "${RESET}"
 
-    # Step 1: Install HyperSpace CLI
-    echo "🚀 Installing HyperSpace CLI..."
+  #!/bin/bash
 
-    while true; do
-        curl -s https://download.hyper.space/api/install | bash | tee /root/hyperspace_install.log
+echo "🚀 Starting HyperSpace Node Setup..."
 
-        if ! grep -q "Failed to parse version from release data." /root/hyperspace_install.log; then
-            echo "✅ HyperSpace CLI installed successfully!"
-            break
-        else
-            echo "❌ Installation failed. Retrying in 10 seconds..."
-            sleep 5
-        fi
-    done
-
-    # Step 2: Add aios-cli to PATH and persist it
-    echo "🔄 Adding aios-cli path to .bashrc..."
-    echo 'export PATH=$PATH:$HOME/.aios' >> ~/.bashrc
-    export PATH=$PATH:$HOME/.aios
-    source ~/.bashrc
-
-    # Step 3: Start the Hyperspace node in a screen session
-    echo "🚀 Starting the Hyperspace node in the background..."
-    screen -S hyperspace -d -m bash -c "$HOME/.aios/aios-cli start"
-
-    # Step 4: Wait for node startup
-    echo "⏳ Waiting for the Hyperspace node to start..."
-    sleep 10
-
-    # Step 5: Check if aios-cli is available
-    echo "🔍 Checking if aios-cli is installed..."
-    if ! command -v aios-cli &> /dev/null; then
-        echo "❌ aios-cli not found. Retrying..."
-        continue
+# Step 1: Check for NVIDIA GPU
+if command -v nvidia-smi &>/dev/null; then
+    echo "✅ NVIDIA GPU detected!"
+    
+    # Step 2: Check if CUDA is installed
+    if command -v nvcc &>/dev/null; then
+        echo "✅ CUDA is already installed."
+    else
+        echo "⚠️ CUDA not found. Installing now..."
+        sudo apt-get update && sudo apt-get install -y cuda-toolkit
     fi
 
-    # Step 6: Check node status
-    echo "🔍 Checking node status..."
-    aios-cli status
+    # Step 3: Add CUDA to PATH
+    echo 'export PATH=/usr/local/cuda/bin:$PATH' >> ~/.bashrc
+    echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> ~/.bashrc
+    source ~/.bashrc
+else
+    echo "❌ No NVIDIA GPU found. Skipping CUDA installation."
+fi
 
-    # Step 7: Download the required model
-    echo "🔄 Downloading the required model..."
+# Step 4: Check if screen session "gaspace" exists
+if screen -list | grep -q "gaspace"; then
+    echo "🟡 Screen session 'gaspace' already exists."
+    read -p "Do you want to switch to it? (y/n): " choice
+    if [[ "$choice" == "y" || "$choice" == "Y" ]]; then
+        screen -r gaspace
+        exit 0
+    else
+        echo "❌ Exiting without switching."
+        exit 1
+    fi
+fi
 
-    while true; do
-        aios-cli models add hf:TheBloke/Mistral-7B-Instruct-v0.1-GGUF:mistral-7b-instruct-v0.1.Q4_K_S.gguf | tee /root/model_download.log
+# Step 5: Create a new screen session and run the HyperSpace script
+echo "🚀 Creating a new 'gaspace' screen session..."
+screen -S gaspace -dm bash -c 'curl -O https://raw.githubusercontent.com/abhiag/HyperspaceGa/main/GA_HyperSpace_CLI.sh && chmod +x GA_HyperSpace_CLI.sh && ./GA_HyperSpace_CLI.sh'
 
-        if grep -q "Download complete" /root/model_download.log; then
-            echo "✅ Model downloaded successfully!"
-            break
-        else
-            echo "❌ Model download failed. Retrying in 10 seconds..."
-            sleep 5
-        fi
-    done
-
-    # Step 8: Ask for private key securely
-    echo "🔑 Enter your private key:"
-    read -p "Private Key: " private_key
-    echo $private_key > /root/my.pem
-    echo "✅ Private key saved to /root/my.pem"
-
-    # Step 9: Import private key
-    echo "🔑 Importing your private key..."
-    aios-cli hive import-keys /root/my.pem
-
-    # Step 10: Login to Hive
-    echo "🔐 Logging into Hive..."
-    aios-cli hive login
-
-    # Step 11: Connect to Hive
-    echo "🌐 Connecting to Hive..."
-    aios-cli hive connect
-
-    # Step 12: Display system info
-    echo "🖥️ Fetching system information..."
-    aios-cli system-info
-
-    # Step 13: Set Hive Tier
-    echo "🏆 Setting your Hive tier to 5..."
-    aios-cli hive select-tier 5 
-
-    # Step 14: Check Hive points in a loop every 10 seconds
-    echo "📊 Checking your Hive points every 10 seconds..."
-    echo "✅ HyperSpace Node setup complete!"
-    echo "ℹ️ Use 'CTRL + A + D' to detach the screen and 'screen -r hyperspace' to reattach."
-
-    while true; do
-        echo "ℹ️ Press 'CTRL + A + D' to detach the screen, 'screen -r hyperspace' to reattach."
-        aios-cli hive points
-        sleep 10
-    done
-
+# Step 6: Wait until the session is listed, then switch
+while ! screen -list | grep -q "gaspace"; do sleep 1; done
+screen -r gaspace
+done
 done
