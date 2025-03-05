@@ -23,98 +23,141 @@ EOF
     printf "   • X (formerly Twitter): https://x.com/GACryptoO\n"
     printf "${RESET}"
 
-# Step 1: Install HyperSpace CLI
-echo "🚀 Installing HyperSpace CLI..."
+#!/bin/bash
 
-while true; do
-    curl -s https://download.hyper.space/api/install | bash >> /root/hyperspace_install.log 2>&1
-    
-    if ! tail -n 1000 /root/hyperspace_install.log | grep -q "Failed to parse version from release data."; then
-        echo "✅ HyperSpace CLI installed successfully!"
-        break
-    else
-        echo "❌ Installation failed. Retrying in 10 seconds..."
-        sleep 5
-    fi
-done
+# Configuration
+LOG_DIR="/var/log/hyperspace"
+INSTALL_LOG="$LOG_DIR/hyperspace_install.log"
+MODEL_DOWNLOAD_LOG="$LOG_DIR/model_download.log"
+PRIVATE_KEY_FILE="$HOME/my.pem"
+AIOS_CLI_PATH="$HOME/.aios/aios-cli"
+SCREEN_SESSION="hyperspace"
 
-# Step 2: Add aios-cli to PATH and persist it
-echo "🔄 Adding aios-cli path to .bashrc..."
-echo 'export PATH=$PATH:~/.aios' >> ~/.bashrc
-export PATH=$PATH:~/.aios
-source ~/.bashrc
+# Ensure log directory exists
+mkdir -p "$LOG_DIR"
 
-# Step 3: Start the Hyperspace node in a screen session
-echo "🚀 Starting the Hyperspace node in the background..."
-echo "~/.aios/aios-cli start" > /root/start_hyperspace.sh
-chmod +x /root/start_hyperspace.sh
-screen -S hyperspace -d -m /root/start_hyperspace.sh
+# Function to log messages
+log() {
+    echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
 
-# Step 4: Wait for node startup
-echo "⏳ Waiting for the Hyperspace node to start..."
-sleep 10
+# Function to check for required tools
+check_dependencies() {
+    local dependencies=("curl" "bash" "screen")
+    for dep in "${dependencies[@]}"; do
+        if ! command -v "$dep" &> /dev/null; then
+            log "❌ Dependency '$dep' is not installed. Please install it and try again."
+            exit 1
+        fi
+    done
+    log "✅ All dependencies are installed."
+}
 
-# Step 5: Check if aios-cli is available
-echo "🔍 Checking if aios-cli is installed..."
-if ! command -v ~/.aios/aios-cli &> /dev/null; then
-    echo "❌ aios-cli not found. Exiting."
+# Function to install HyperSpace CLI
+install_hyperspace_cli() {
+    log "🚀 Installing HyperSpace CLI..."
+    local retry_count=0
+    local max_retries=5
+    local retry_delay=5
+
+    while [[ $retry_count -lt $max_retries ]]; do
+        curl -s https://download.hyper.space/api/install | bash >> "$INSTALL_LOG" 2>&1
+
+        if ! grep -q "Failed to parse version from release data." "$INSTALL_LOG"; then
+            log "✅ HyperSpace CLI installed successfully!"
+            return 0
+        else
+            retry_count=$((retry_count + 1))
+            log "❌ Installation failed. Retrying in $retry_delay seconds... (Attempt $retry_count/$max_retries)"
+            sleep $retry_delay
+            retry_delay=$((retry_delay * 2)) # Exponential backoff
+        fi
+    done
+
+    log "❌ Failed to install HyperSpace CLI after $max_retries attempts. Check $INSTALL_LOG for details."
     exit 1
-fi
+}
 
-# Step 6: Check node status
-echo "🔍 Checking node status..."
-~/.aios/aios-cli status
+# Function to start the HyperSpace node
+start_hyperspace_node() {
+    log "🚀 Starting the HyperSpace node in the background..."
+    local start_script="$HOME/start_hyperspace.sh"
+    echo "$AIOS_CLI_PATH start" > "$start_script"
+    chmod +x "$start_script"
+    screen -S "$SCREEN_SESSION" -d -m "$start_script"
+    log "✅ HyperSpace node started in a screen session."
+}
 
-# Step 7: Download the required model
-echo "🔄 Downloading the required model..."
-
-while true; do
-    ~/.aios/aios-cli models add hf:TheBloke/phi-2-GGUF:phi-2.Q4_K_M.gguf 2>&1 | tee /root/model_download.log
-    
-    if tail -n 1000 /root/model_download.log | grep -q "Download complete"; then
-        echo "✅ Model downloaded successfully!"
-        break
+# Function to stop the HyperSpace node
+stop_hyperspace_node() {
+    log "🛑 Stopping the HyperSpace node..."
+    if "$AIOS_CLI_PATH" kill; then
+        log "✅ HyperSpace node stopped using 'aios-cli kill'."
     else
-        echo "❌ Model download failed. Retrying in 10 seconds..."
-        sleep 5
+        log "❌ Failed to stop HyperSpace node using 'aios-cli kill'. Attempting to stop via screen..."
+        if screen -list | grep -q "$SCREEN_SESSION"; then
+            screen -XS "$SCREEN_SESSION" quit
+            log "✅ HyperSpace node stopped via screen."
+        else
+            log "❌ No active HyperSpace node found."
+        fi
     fi
-done
+}
 
-# Step 8: Ask for private key securely
-echo "🔑 Enter your private key:"
-read -s -p "Private Key: " private_key
-echo $private_key > /root/my.pem
-chmod 600 /root/my.pem
-echo "✅ Private key saved to /root/my.pem"
+# Function to restart the HyperSpace node
+restart_hyperspace_node() {
+    log "🔄 Restarting the HyperSpace node..."
+    stop_hyperspace_node
+    start_hyperspace_node
+    log "✅ HyperSpace node restarted."
+}
 
-# Step 9: Import private key
-echo "🔑 Importing your private key..."
-~/.aios/aios-cli hive import-keys /root/my.pem
+# Function to uninstall HyperSpace
+uninstall_hyperspace() {
+    log "🧹 Uninstalling HyperSpace..."
+    stop_hyperspace_node
+    rm -rf "$HOME/.aios" "$PRIVATE_KEY_FILE" "$LOG_DIR"
+    log "✅ HyperSpace uninstalled."
+}
 
-# Step 10: Login to Hive
-echo "🔐 Logging into Hive..."
-~/.aios/aios-cli hive login
+# Function to display the menu
+show_menu() {
+    echo -e "\n===== HyperSpace Node Manager ====="
+    echo "1. Install HyperSpace"
+    echo "2. Restart HyperSpace Node"
+    echo "3. Stop HyperSpace Node"
+    echo "4. Uninstall HyperSpace"
+    echo "5. Exit"
+    echo -e "===============================\n"
+}
 
-# Step 11: Connect to Hive
-echo "🌐 Connecting to Hive..."
-~/.aios/aios-cli hive connect
-
-# Step 12: Display system info
-echo "🖥️ Fetching system information..."
-~/.aios/aios-cli system-info
-
-# Step 13: Set Hive Tier
-echo "🏆 Setting your Hive tier to 5..."
-~/.aios/aios-cli hive select-tier 5 
-
-# Step 14: Check Hive points in a loop every 10 seconds
-echo "📊 Checking your Hive points every 10 seconds..."
-echo "✅ HyperSpace Node setup complete!"
-echo "ℹ️ Use 'CTRL + A + D' to detach the screen and 'screen -r gaspace' to reattach."
-
+# Main script execution
 while true; do
-    echo "ℹ️ Press 'CTRL + A + D' to detach the screen, 'screen -r gaspace' to reattach."
-    ~/.aios/aios-cli hive points
-    sleep 10
-done
+    show_menu
+    read -p "Choose an option (1-5): " choice
+
+    case $choice in
+        1)
+            check_dependencies
+            install_hyperspace_cli
+            ;;
+        2)
+            restart_hyperspace_node
+            ;;
+        3)
+            stop_hyperspace_node
+            ;;
+        4)
+            uninstall_hyperspace
+            ;;
+        5)
+            log "👋 Exiting..."
+            exit 0
+            ;;
+        *)
+            log "❌ Invalid choice. Please select a valid option."
+            ;;
+    esac
+
+    read -p "Press Enter to continue..."
 done
