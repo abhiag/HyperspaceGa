@@ -30,7 +30,7 @@ LOG_DIR="/var/log/hyperspace"
 INSTALL_LOG="$LOG_DIR/hyperspace_install.log"
 MODEL_DOWNLOAD_LOG="$LOG_DIR/model_download.log"
 PRIVATE_KEY_FILE="$HOME/my.pem"
-AIOS_CLI_PATH="$HOME/.aios/aios-cli"
+AIOS_CLI_PATH="~/.aios/aios-cli"
 SCREEN_SESSION="hyperspace"
 
 # Ensure log directory exists
