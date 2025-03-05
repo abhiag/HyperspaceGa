@@ -53,6 +53,38 @@ check_dependencies() {
     log "✅ All dependencies are installed."
 }
 
+# Function to set up CUDA environment variables
+setup_cuda_env() {
+    echo "Setting up CUDA environment..."
+
+    # Ensure the directory exists
+    if [ ! -d "/usr/local/cuda-12.8/bin" ] || [ ! -d "/usr/local/cuda-12.8/lib64" ]; then
+        echo "Warning: CUDA directories do not exist. CUDA might not be installed!" >&2
+    fi
+
+    # Write environment variables to profile script
+    {
+        echo 'export PATH=/usr/local/cuda-12.8/bin${PATH:+:${PATH}}'
+        echo 'export LD_LIBRARY_PATH=/usr/local/cuda-12.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}'
+    } | sudo tee /etc/profile.d/cuda.sh >/dev/null
+
+    # Apply the changes
+    source /etc/profile.d/cuda.sh
+
+    # Verify changes
+    if echo "$PATH" | grep -q "/usr/local/cuda-12.8/bin"; then
+        echo "CUDA PATH successfully updated!"
+    else
+        echo "Error: CUDA PATH not set correctly!" >&2
+    fi
+
+    if echo "$LD_LIBRARY_PATH" | grep -q "/usr/local/cuda-12.8/lib64"; then
+        echo "CUDA LD_LIBRARY_PATH successfully updated!"
+    else
+        echo "Error: CUDA LD_LIBRARY_PATH not set correctly!" >&2
+    fi
+}
+
 # Function to install HyperSpace CLI
 install_hyperspace_cli() {
     log "🚀 Installing HyperSpace CLI..."
@@ -139,6 +171,7 @@ while true; do
     case $choice in
         1)
             check_dependencies
+            setup_cuda_env
             install_hyperspace_cli
             ;;
         2)
