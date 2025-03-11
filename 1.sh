@@ -293,7 +293,7 @@ show_menu() {
     echo "2. Restart HyperSpace Node"
     echo "3. Stop HyperSpace Node - Stop node according to active ports"
     echo "4. Check HyperSpace Node Status - Show the active ports"
-    echo "5. Uninstall HyperSpace - Which node you want to uninstall?"
+    echo "5. Uninstall HyperSpace?"
     echo "6. Check Hyper Points - Which node points you want to check?"
     echo "7. Exit"
     echo -e "===============================\n"
