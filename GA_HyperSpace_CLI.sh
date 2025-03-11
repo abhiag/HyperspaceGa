@@ -29,16 +29,20 @@ EOF
 PRIVATE_KEY_FILE="$HOME/my.pem"
 AIOS_CLI_PATH="$HOME/.aios/aios-cli"
 SCREEN_SESSION="hyperspace"
+LOG_FILE="$HOME/hyperspace.log"
 
 # Function to log messages
 log() {
-    echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    local message="[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    echo -e "$message" | tee -a "$LOG_FILE"
 }
 
 # Function to check for required tools and libraries
 check_dependencies() {
     local dependencies=("curl" "bash" "screen")
     local libraries=("libssl.so.3")
+
+    log "🔍 Checking dependencies and libraries..."
 
     for dep in "${dependencies[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
@@ -76,26 +80,45 @@ setup_cuda_env() {
 # Function to install HyperSpace CLI
 install_hyperspace_cli() {
     log "🚀 Installing HyperSpace CLI..."
-    curl -s https://download.hyper.space/api/install | bash
-    log "✅ HyperSpace CLI installed successfully!"
+    if curl -s https://download.hyper.space/api/install | bash; then
+        log "✅ HyperSpace CLI installed successfully!"
+    else
+        log "❌ Failed to install HyperSpace CLI. Please check your internet connection and try again."
+        exit 1
+    fi
 }
 
 # Function to start the HyperSpace node
 start_hyperspace_node() {
     log "🚀 Starting the HyperSpace node in the background..."
-    "$AIOS_CLI_PATH" start
+    if "$AIOS_CLI_PATH" start; then
+        log "✅ HyperSpace node started successfully!"
+    else
+        log "❌ Failed to start HyperSpace node. Please check the logs for more details."
+        exit 1
+    fi
 }
 
 # Function to stop the HyperSpace node
 stop_hyperspace_node() {
     log "🛑 Stopping the HyperSpace node..."
-    "$AIOS_CLI_PATH" kill
+    if "$AIOS_CLI_PATH" kill; then
+        log "✅ HyperSpace node stopped successfully!"
+    else
+        log "❌ Failed to stop HyperSpace node. Please check the logs for more details."
+        exit 1
+    fi
 }
 
 # Function to check the status of the HyperSpace node
 check_hyperspace_status() {
     log "🔍 Checking HyperSpace node status..."
-    "$AIOS_CLI_PATH" status
+    if "$AIOS_CLI_PATH" status; then
+        log "✅ HyperSpace node status checked successfully!"
+    else
+        log "❌ Failed to check HyperSpace node status. Please check the logs for more details."
+        exit 1
+    fi
 }
 
 # Function to restart the HyperSpace node
@@ -110,8 +133,12 @@ restart_hyperspace_node() {
 uninstall_hyperspace() {
     log "🧹 Uninstalling HyperSpace..."
     stop_hyperspace_node
-    rm -rf "$HOME/.aios" "$PRIVATE_KEY_FILE"
-    log "✅ HyperSpace uninstalled."
+    if rm -rf "$HOME/.aios" "$PRIVATE_KEY_FILE"; then
+        log "✅ HyperSpace uninstalled successfully!"
+    else
+        log "❌ Failed to uninstall HyperSpace. Please check the logs for more details."
+        exit 1
+    fi
 }
 
 # Function to display the menu
