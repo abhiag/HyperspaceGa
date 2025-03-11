@@ -264,6 +264,16 @@ uninstall_hyperspace() {
     fi
 }
 
+# Function to check Hyper Points
+check_hyper_points() {
+    log "🔍 Checking your Hyper Points..."
+    "$AIOS_CLI_PATH" hive points
+    if [ $? -ne 0 ]; then
+        log "❌ Failed to check Hyper Points. Please check the logs for more details."
+        exit 1
+    fi
+}
+
 # Function to display the menu
 show_menu() {
     echo -e "\n===== HyperSpace Node Manager ====="
@@ -272,9 +282,11 @@ show_menu() {
     echo "3. Stop HyperSpace Node"
     echo "4. Check HyperSpace Node Status"
     echo "5. Uninstall HyperSpace"
-    echo "6. Exit"
+    echo "6. Check Hyper Points"
+    echo "7. Exit"
     echo -e "===============================\n"
 }
+
 
 # Main script execution
 while true; do
@@ -300,6 +312,9 @@ while true; do
             uninstall_hyperspace
             ;;
         6)
+            check_hyper_points
+            ;;
+        7)
             log "👋 Exiting..."
             exit 0
             ;;
