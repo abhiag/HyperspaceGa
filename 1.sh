@@ -229,6 +229,19 @@ install_hyperspace_cli() {
     log "🎉 HyperSpace installation and setup completed successfully in $base_dir!"
 }
 
+# Function to display the menu
+show_menu() {
+    echo -e "\n===== HyperSpace Node Manager ====="
+    echo "1. Install HyperSpace - How many nodes you want to install"
+    echo "2. Restart HyperSpace Node"
+    echo "3. Stop HyperSpace Node - Stop node according to active ports"
+    echo "4. Check HyperSpace Node Status - Show the active ports"
+    echo "5. Uninstall HyperSpace - Which node you want to uninstall?"
+    echo "6. Check Hyper Points - Which node points you want to check?"
+    echo "7. Exit"
+    echo -e "===============================\n"
+}
+
 # Main script execution
 check_dependencies
 setup_cuda_env
