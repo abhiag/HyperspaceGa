@@ -108,6 +108,17 @@ install_hyperspace_cli() {
         exit 1
     fi
 
+    # Move the binary from /root/.aios to the correct base_dir
+    if [[ -f "/root/.aios/aios-cli" ]]; then
+        log "🔄 Moving aios-cli binary to $base_dir/.aios..."
+        mkdir -p "$base_dir/.aios"
+        mv "/root/.aios/aios-cli" "$base_dir/.aios/"
+        log "✅ aios-cli binary moved to $base_dir/.aios."
+    else
+        log "❌ aios-cli binary not found in /root/.aios. Installation failed."
+        exit 1
+    fi
+
     # Verify installation
     if [[ -f "$aios_cli_path" ]]; then
         log "✅ aios-cli binary found in $base_dir."
@@ -216,19 +227,6 @@ install_hyperspace_cli() {
     fi
 
     log "🎉 HyperSpace installation and setup completed successfully in $base_dir!"
-}
-
-# Function to display the menu
-show_menu() {
-    echo -e "\n===== HyperSpace Node Manager ====="
-    echo "1. Install HyperSpace - How many nodes you want to install"
-    echo "2. Restart HyperSpace Node"
-    echo "3. Stop HyperSpace Node - Stop node according to active ports"
-    echo "4. Check HyperSpace Node Status - Show the active ports"
-    echo "5. Uninstall HyperSpace - Which node you want to uninstall?"
-    echo "6. Check Hyper Points - Which node points you want to check?"
-    echo "7. Exit"
-    echo -e "===============================\n"
 }
 
 # Main script execution
