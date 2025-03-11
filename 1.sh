@@ -229,6 +229,63 @@ install_hyperspace_cli() {
     log "🎉 HyperSpace installation and setup completed successfully in $base_dir!"
 }
 
+# Function to list installed nodes
+list_installed_nodes() {
+    if [ ${#NODES[@]} -eq 0 ]; then
+        log "❌ No nodes are currently installed."
+        return 1
+    else
+        log "📋 Installed Nodes:"
+        for i in "${!NODES[@]}"; do
+            local base_dir=$(echo "${NODES[$i]}" | cut -d: -f1)
+            local port=$(echo "${NODES[$i]}" | cut -d: -f2)
+            log "$((i+1)). $base_dir (Port: $port)"
+        done
+    fi
+}
+
+# Function to uninstall a HyperSpace node
+uninstall_hyperspace() {
+    log "🧹 Uninstalling HyperSpace node..."
+
+    # List installed nodes
+    list_installed_nodes || return 1
+
+    # Prompt the user to select a node to uninstall
+    read -p "Enter the number of the node you want to uninstall: " node_number
+    if [[ ! "$node_number" =~ ^[0-9]+$ ]] || [ "$node_number" -lt 1 ] || [ "$node_number" -gt "${#NODES[@]}" ]; then
+        log "❌ Invalid selection. Please enter a valid number."
+        return 1
+    fi
+
+    # Get the selected node details
+    local selected_node="${NODES[$((node_number-1))]}"
+    local base_dir=$(echo "$selected_node" | cut -d: -f1)
+    local port=$(echo "$selected_node" | cut -d: -f2)
+    local pid=$(echo "$selected_node" | cut -d: -f3)
+
+    # Stop the node if it's running
+    log "🛑 Stopping the HyperSpace node on port $port..."
+    if kill "$pid" > /dev/null 2>&1; then
+        log "✅ HyperSpace node on port $port stopped successfully."
+    else
+        log "⚠️ Failed to stop the HyperSpace node on port $port. It may already be stopped."
+    fi
+
+    # Remove the node directory
+    log "🧹 Removing node directory $base_dir..."
+    if rm -rf "$base_dir"; then
+        log "✅ Node directory $base_dir removed successfully."
+    else
+        log "❌ Failed to remove node directory $base_dir."
+        return 1
+    fi
+
+    # Remove the node from the NODES array
+    NODES=("${NODES[@]:0:$((node_number-1))}" "${NODES[@]:$node_number}")
+    log "✅ Node uninstalled successfully."
+}
+
 # Function to display the menu
 show_menu() {
     echo -e "\n===== HyperSpace Node Manager ====="
