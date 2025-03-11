@@ -74,7 +74,7 @@ setup_cuda_env() {
     source /etc/profile.d/cuda.sh
 }
 
-# Function to install HyperSpace CLI
+# Function to install HyperSpace CLI and perform setup
 install_hyperspace_cli() {
     log "🚀 Installing HyperSpace CLI..."
     if curl -s https://download.hyper.space/api/install | bash; then
@@ -83,6 +83,83 @@ install_hyperspace_cli() {
         log "❌ Failed to install HyperSpace CLI. Please check your internet connection and try again."
         exit 1
     fi
+
+    # Step 2: Add the aios-cli path to .bashrc
+    log "🔄 Adding aios-cli path to .bashrc..."
+    echo 'export PATH=$PATH:~/.aios' >> ~/.bashrc
+    log "✅ aios-cli path added to .bashrc."
+
+    # Step 3: Reload .bashrc to apply environment changes
+    log "🔄 Reloading .bashrc..."
+    source ~/.bashrc
+    log "✅ .bashrc reloaded."
+
+    # Step 5: Start Hyperspace node
+    log "🚀 Starting the Hyperspace node..."
+    "$AIOS_CLI_PATH" start
+    log "✅ Hyperspace node started."
+
+    # Wait for the node to start
+    log "⏳ Waiting for the Hyperspace node to start..."
+    sleep 10
+
+    # Step 7: Check the node status
+    log "🔍 Checking node status..."
+    "$AIOS_CLI_PATH" status
+    if [ $? -ne 0 ]; then
+        log "❌ Failed to check node status. Please check the logs for more details."
+        exit 1
+    fi
+
+    # Step 8: Proceed with downloading the required model
+    log "🔄 Downloading the required model..."
+    "$AIOS_CLI_PATH" models add hf:TheBloke/phi-2-GGUF:phi-2.Q4_K_M.gguf 2>&1 | tee /root/model_download.log
+    if grep -q "Download complete" /root/model_download.log; then
+        log "✅ Model downloaded successfully!"
+    else
+        log "❌ Model download failed. Check /root/model_download.log for details."
+        exit 1
+    fi
+
+    # Step 10: Import the private key
+    log "🔑 Enter your private key:"
+    read -p "Private Key: " private_key
+    echo "$private_key" > "$PRIVATE_KEY_FILE"
+    log "✅ Private key saved to $PRIVATE_KEY_FILE."
+
+    # Step 11: Import the private key into Hive
+    log "🔑 Importing private key into Hive..."
+    "$AIOS_CLI_PATH" hive import-keys "$PRIVATE_KEY_FILE"
+    if [ $? -ne 0 ]; then
+        log "❌ Failed to import private key into Hive. Please check the logs for more details."
+        exit 1
+    fi
+
+    # Step 12: Log in to Hive
+    log "🔐 Logging into Hive..."
+    "$AIOS_CLI_PATH" hive login
+    if [ $? -ne 0 ]; then
+        log "❌ Failed to log in to Hive. Please check the logs for more details."
+        exit 1
+    fi
+
+    # Step 13: Connect to Hive
+    log "🌐 Connecting to Hive..."
+    "$AIOS_CLI_PATH" hive connect
+    if [ $? -ne 0 ]; then
+        log "❌ Failed to connect to Hive. Please check the logs for more details."
+        exit 1
+    fi
+
+    # Step 14: Set Hive Tier
+    log "🏆 Setting your Hive tier to 3..."
+    "$AIOS_CLI_PATH" hive select-tier 3
+    if [ $? -ne 0 ]; then
+        log "❌ Failed to set Hive tier. Please check the logs for more details."
+        exit 1
+    fi
+
+    log "🎉 HyperSpace installation and setup completed successfully!"
 }
 
 # Function to start the HyperSpace node
