@@ -222,7 +222,9 @@ check_dependencies
 setup_cuda_env
 
 while true; do
-# Function to display the menu
+    show_menu
+    read -p "Choose an option (1-7): " choice
+
 show_menu() {
     echo -e "\n===== HyperSpace Node Manager ====="
     echo "1. Install HyperSpace - How many nodes you want to install"
@@ -233,7 +235,6 @@ show_menu() {
     echo "6. Check Hyper Points - Which node points you want to check?"
     echo "7. Exit"
     echo -e "===============================\n"
-    read -p "Enter your choice: " CHOICE
 }
 
     case $choice in
