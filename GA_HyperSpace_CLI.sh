@@ -36,7 +36,7 @@ log() {
 
 # Function to check for required tools and libraries
 check_dependencies() {
-    local dependencies=("curl" "bash")
+    local dependencies=("curl" "bash" "htop" "nvtop" "wget")
     local libraries=("libssl.so.3")
 
     log "🔍 Checking dependencies and libraries..."
