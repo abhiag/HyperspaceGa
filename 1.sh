@@ -145,9 +145,9 @@ install_hyperspace_cli() {
         log "✅ Port $port is available."
     fi
 
-    # Step 5: Start Hyperspace node on the specified port
-    log "🚀 Starting the Hyperspace node on port $port..."
-    "$aios_cli_path" start --port "$port" &
+    # Step 5: Start Hyperspace node
+    log "🚀 Starting the Hyperspace node..."
+    "$aios_cli_path" start &
     local node_pid=$!
     log "✅ Hyperspace node started with PID $node_pid."
 
@@ -229,19 +229,47 @@ install_hyperspace_cli() {
     log "🎉 HyperSpace installation and setup completed successfully in $base_dir!"
 }
 
-# Function to list installed nodes
-list_installed_nodes() {
-    if [ ${#NODES[@]} -eq 0 ]; then
-        log "❌ No nodes are currently installed."
-        return 1
+# Function to restart a HyperSpace node
+restart_hyperspace_node() {
+    local port=$1
+    local base_dir=$(echo "${NODES[@]}" | grep -oP "$port:\K[^:]+")
+    local aios_cli_path="$base_dir/.aios/aios-cli"
+
+    log "🔄 Restarting HyperSpace node on port $port..."
+    "$aios_cli_path" restart
+    if [ $? -eq 0 ]; then
+        log "✅ HyperSpace node on port $port restarted successfully!"
     else
-        log "📋 Installed Nodes:"
-        for i in "${!NODES[@]}"; do
-            local base_dir=$(echo "${NODES[$i]}" | cut -d: -f1)
-            local port=$(echo "${NODES[$i]}" | cut -d: -f2)
-            log "$((i+1)). $base_dir (Port: $port)"
-        done
+        log "❌ Failed to restart HyperSpace node on port $port."
     fi
+}
+
+# Function to stop a HyperSpace node
+stop_hyperspace_node() {
+    local port=$1
+    local base_dir=$(echo "${NODES[@]}" | grep -oP "$port:\K[^:]+")
+    local aios_cli_path="$base_dir/.aios/aios-cli"
+
+    log "🛑 Stopping HyperSpace node on port $port..."
+    "$aios_cli_path" stop
+    if [ $? -eq 0 ]; then
+        log "✅ HyperSpace node on port $port stopped successfully!"
+    else
+        log "❌ Failed to stop HyperSpace node on port $port."
+    fi
+}
+
+# Function to check HyperSpace node status
+check_hyperspace_status() {
+    log "🔍 Checking HyperSpace node status..."
+    for node in "${NODES[@]}"; do
+        local base_dir=$(echo "$node" | cut -d: -f1)
+        local port=$(echo "$node" | cut -d: -f2)
+        local aios_cli_path="$base_dir/.aios/aios-cli"
+
+        log "📡 Node in $base_dir (Port: $port):"
+        "$aios_cli_path" status
+    done
 }
 
 # Function to uninstall a HyperSpace node
@@ -284,6 +312,21 @@ uninstall_hyperspace() {
     # Remove the node from the NODES array
     NODES=("${NODES[@]:0:$((node_number-1))}" "${NODES[@]:$node_number}")
     log "✅ Node uninstalled successfully."
+}
+
+# Function to list installed nodes
+list_installed_nodes() {
+    if [ ${#NODES[@]} -eq 0 ]; then
+        log "❌ No nodes are currently installed."
+        return 1
+    else
+        log "📋 Installed Nodes:"
+        for i in "${!NODES[@]}"; do
+            local base_dir=$(echo "${NODES[$i]}" | cut -d: -f1)
+            local port=$(echo "${NODES[$i]}" | cut -d: -f2)
+            log "$((i+1)). $base_dir (Port: $port)"
+        done
+    fi
 }
 
 # Function to display the menu
