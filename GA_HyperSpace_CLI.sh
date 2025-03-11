@@ -34,6 +34,30 @@ log() {
     echo -e "$message" | tee -a "$LOG_FILE"
 }
 
+# Function to install a package using the system package manager
+install_package() {
+    local package=$1
+    if command -v apt-get &> /dev/null; then
+        log "📦 Installing $package using apt-get..."
+        sudo apt-get install -y "$package"
+    elif command -v yum &> /dev/null; then
+        log "📦 Installing $package using yum..."
+        sudo yum install -y "$package"
+    elif command -v dnf &> /dev/null; then
+        log "📦 Installing $package using dnf..."
+        sudo dnf install -y "$package"
+    elif command -v pacman &> /dev/null; then
+        log "📦 Installing $package using pacman..."
+        sudo pacman -S --noconfirm "$package"
+    elif command -v zypper &> /dev/null; then
+        log "📦 Installing $package using zypper..."
+        sudo zypper install -y "$package"
+    else
+        log "❌ Unsupported package manager. Please install $package manually."
+        exit 1
+    fi
+}
+
 # Function to check for required tools and libraries
 check_dependencies() {
     local dependencies=("curl" "bash" "htop" "nvtop" "wget")
@@ -43,15 +67,20 @@ check_dependencies() {
 
     for dep in "${dependencies[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
-            log "❌ Dependency '$dep' is not installed. Please install it and try again."
-            exit 1
+            log "❌ Dependency '$dep' is not installed. Installing..."
+            install_package "$dep"
         fi
     done
 
     for lib in "${libraries[@]}"; do
         if ! ldconfig -p | grep -q "$lib"; then
-            log "❌ Library '$lib' is not installed. Please install it and try again."
-            exit 1
+            log "❌ Library '$lib' is not installed. Installing..."
+            if [[ "$lib" == "libssl.so.3" ]]; then
+                install_package "libssl3"
+            else
+                log "❌ Unsupported library '$lib'. Please install it manually."
+                exit 1
+            fi
         fi
     done
 
