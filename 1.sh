@@ -217,14 +217,6 @@ install_hyperspace_cli() {
     log "🎉 HyperSpace installation and setup completed successfully in $base_dir!"
 }
 
-# Main script execution
-check_dependencies
-setup_cuda_env
-
-while true; do
-    show_menu
-    read -p "Choose an option (1-7): " choice
-
 show_menu() {
     echo -e "\n===== HyperSpace Node Manager ====="
     echo "1. Install HyperSpace - How many nodes you want to install"
@@ -236,6 +228,14 @@ show_menu() {
     echo "7. Exit"
     echo -e "===============================\n"
 }
+
+# Main script execution
+check_dependencies
+setup_cuda_env
+
+while true; do
+    show_menu
+    read -p "Choose an option (1-7): " choice
 
     case $choice in
         1)
