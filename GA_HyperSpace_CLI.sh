@@ -74,6 +74,16 @@ setup_cuda_env() {
     source /etc/profile.d/cuda.sh
 }
 
+# Function to check if a port is in use
+is_port_in_use() {
+    local port=$1
+    if lsof -i :"$port" > /dev/null 2>&1; then
+        return 0 # Port is in use
+    else
+        return 1 # Port is not in use
+    fi
+}
+
 # Function to install HyperSpace CLI and perform setup
 install_hyperspace_cli() {
     log "🚀 Installing HyperSpace CLI..."
@@ -94,14 +104,34 @@ install_hyperspace_cli() {
     source ~/.bashrc
     log "✅ .bashrc reloaded."
 
+    # Step 4: Check if port 50051 is in use
+    if is_port_in_use 50051; then
+        log "❌ Port 50051 is already in use. Please free the port and try again."
+        exit 1
+    else
+        log "✅ Port 50051 is available."
+    fi
+
     # Step 5: Start Hyperspace node
     log "🚀 Starting the Hyperspace node..."
-    "$AIOS_CLI_PATH" start
-    log "✅ Hyperspace node started."
+    "$AIOS_CLI_PATH" start &
+    local node_pid=$!
+    log "✅ Hyperspace node started with PID $node_pid."
 
-    # Wait for the node to start
-    log "⏳ Waiting for the Hyperspace node to start..."
-    sleep 10
+    # Wait for the node to initialize
+    log "⏳ Waiting for the Hyperspace node to initialize..."
+    local timeout=60
+    local elapsed=0
+    while ! is_port_in_use 50051; do
+        sleep 5
+        elapsed=$((elapsed + 5))
+        if [ "$elapsed" -ge "$timeout" ]; then
+            log "❌ Timeout: Hyperspace node failed to initialize within $timeout seconds."
+            kill "$node_pid" > /dev/null 2>&1
+            exit 1
+        fi
+    done
+    log "✅ Hyperspace node initialized successfully."
 
     # Step 7: Check the node status
     log "🔍 Checking node status..."
