@@ -178,24 +178,10 @@ MODEL_URL="https://huggingface.co/TheBloke/phi-2-GGUF/resolve/main/phi-2.Q4_K_M.
 
 # Download the model using wget with live progress
 log "📥 Downloading model from $MODEL_URL..."
-wget --progress=bar:force:noscroll -O /root/phi-2.Q4_K_M.gguf "$MODEL_URL" 2>&1 | tee /root/model_download.log
-
-# Check if the download was successful
-if grep -q "100%" /root/model_download.log; then
+if wget --progress=bar:force:noscroll -O /root/phi-2.Q4_K_M.gguf "$MODEL_URL"; then
     log "✅ Model downloaded successfully!"
-
-    # Add the downloaded model to aios-cli
-    log "🔄 Adding the downloaded model to aios-cli..."
-    "$AIOS_CLI_PATH" models add /root/phi-2.Q4_K_M.gguf 2>&1 | tee -a /root/model_download.log
-
-    if grep -q "Model added successfully" /root/model_download.log; then
-        log "✅ Model added to aios-cli successfully!"
-    else
-        log "❌ Failed to add the model to aios-cli. Check /root/model_download.log for details."
-        exit 1
-    fi
 else
-    log "❌ Model download failed. Check /root/model_download.log for details."
+    log "❌ Model download failed."
     exit 1
 fi
 
