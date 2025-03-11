@@ -107,6 +107,14 @@ install_hyperspace_cli() {
         exit 1
     fi
 
+    # Verify installation
+    if [[ -f "$aios_cli_path" ]]; then
+        log "✅ aios-cli binary found in $base_dir."
+    else
+        log "❌ aios-cli binary not found in $base_dir. Installation failed."
+        exit 1
+    fi
+
     # Step 2: Add the aios-cli path to .bashrc
     log "🔄 Adding aios-cli path to .bashrc..."
     echo "export PATH=\$PATH:$base_dir/.aios" >> ~/.bashrc
@@ -207,82 +215,6 @@ install_hyperspace_cli() {
     fi
 
     log "🎉 HyperSpace installation and setup completed successfully in $base_dir!"
-}
-
-# Function to restart a HyperSpace node
-restart_hyperspace_node() {
-    local port=$1
-    local base_dir=$(echo "${NODES[@]}" | grep -oP "$port:\K[^:]+")
-    local aios_cli_path="$base_dir/.aios/aios-cli"
-
-    log "🔄 Restarting HyperSpace node on port $port..."
-    "$aios_cli_path" restart --port "$port"
-    if [ $? -eq 0 ]; then
-        log "✅ HyperSpace node on port $port restarted successfully!"
-    else
-        log "❌ Failed to restart HyperSpace node on port $port."
-    fi
-}
-
-# Function to stop a HyperSpace node
-stop_hyperspace_node() {
-    local port=$1
-    local base_dir=$(echo "${NODES[@]}" | grep -oP "$port:\K[^:]+")
-    local aios_cli_path="$base_dir/.aios/aios-cli"
-
-    log "🛑 Stopping HyperSpace node on port $port..."
-    "$aios_cli_path" stop --port "$port"
-    if [ $? -eq 0 ]; then
-        log "✅ HyperSpace node on port $port stopped successfully!"
-    else
-        log "❌ Failed to stop HyperSpace node on port $port."
-    fi
-}
-
-# Function to check HyperSpace node status
-check_hyperspace_status() {
-    log "🔍 Checking HyperSpace node status..."
-    for node in "${NODES[@]}"; do
-        local base_dir=$(echo "$node" | cut -d: -f1)
-        local port=$(echo "$node" | cut -d: -f2)
-        local aios_cli_path="$base_dir/.aios/aios-cli"
-
-        log "📡 Node in $base_dir (Port: $port):"
-        "$aios_cli_path" status
-    done
-}
-
-# Function to uninstall a HyperSpace node
-uninstall_hyperspace() {
-    local base_dir=$1
-    local aios_cli_path="$base_dir/.aios/aios-cli"
-
-    log "🧹 Uninstalling HyperSpace node in $base_dir..."
-    "$aios_cli_path" stop
-    rm -rf "$base_dir"
-    log "✅ HyperSpace node in $base_dir uninstalled successfully!"
-}
-
-# Function to check Hyper Points for a node
-check_hyper_points() {
-    local base_dir=$1
-    local aios_cli_path="$base_dir/.aios/aios-cli"
-
-    log "🔍 Checking Hyper Points for node in $base_dir..."
-    "$aios_cli_path" hive points
-}
-
-# Function to display the menu
-show_menu() {
-    echo -e "\n===== HyperSpace Node Manager ====="
-    echo "1. Install HyperSpace - How many nodes you want to install"
-    echo "2. Restart HyperSpace Node"
-    echo "3. Stop HyperSpace Node - Stop node according to active ports"
-    echo "4. Check HyperSpace Node Status - Show the active ports"
-    echo "5. Uninstall HyperSpace - Which node you want to uninstall?"
-    echo "6. Check Hyper Points - Which node points you want to check?"
-    echo "7. Exit"
-    echo -e "===============================\n"
 }
 
 # Main script execution
