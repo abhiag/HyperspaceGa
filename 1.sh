@@ -100,6 +100,7 @@ install_hyperspace_cli() {
     mkdir -p "$base_dir"
     cd "$base_dir" || exit 1
 
+    log "🔍 Running installation script..."
     if curl -s https://download.hyper.space/api/install | bash; then
         log "✅ HyperSpace CLI installed successfully in $base_dir!"
     else
@@ -217,6 +218,7 @@ install_hyperspace_cli() {
     log "🎉 HyperSpace installation and setup completed successfully in $base_dir!"
 }
 
+# Function to display the menu
 show_menu() {
     echo -e "\n===== HyperSpace Node Manager ====="
     echo "1. Install HyperSpace - How many nodes you want to install"
