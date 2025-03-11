@@ -141,15 +141,34 @@ install_hyperspace_cli() {
         exit 1
     fi
 
-    # Step 8: Proceed with downloading the required model
-    log "🔄 Downloading the required model..."
-    "$AIOS_CLI_PATH" models add hf:TheBloke/phi-2-GGUF:phi-2.Q4_K_M.gguf 2>&1 | tee /root/model_download.log
-    if grep -q "Download complete" /root/model_download.log; then
-        log "✅ Model downloaded successfully!"
+# Step 8: Proceed with downloading the required model
+log "🔄 Downloading the required model..."
+
+# Define the model URL (replace with the actual URL if available)
+MODEL_URL="https://huggingface.co/TheBloke/phi-2-GGUF/resolve/main/phi-2.Q4_K_M.gguf"
+
+# Download the model using wget with live progress
+log "📥 Downloading model from $MODEL_URL..."
+wget --progress=bar:force:noscroll -O /root/phi-2.Q4_K_M.gguf "$MODEL_URL" 2>&1 | tee /root/model_download.log
+
+# Check if the download was successful
+if grep -q "100%" /root/model_download.log; then
+    log "✅ Model downloaded successfully!"
+
+    # Add the downloaded model to aios-cli
+    log "🔄 Adding the downloaded model to aios-cli..."
+    "$AIOS_CLI_PATH" models add /root/phi-2.Q4_K_M.gguf 2>&1 | tee -a /root/model_download.log
+
+    if grep -q "Model added successfully" /root/model_download.log; then
+        log "✅ Model added to aios-cli successfully!"
     else
-        log "❌ Model download failed. Check /root/model_download.log for details."
+        log "❌ Failed to add the model to aios-cli. Check /root/model_download.log for details."
         exit 1
     fi
+else
+    log "❌ Model download failed. Check /root/model_download.log for details."
+    exit 1
+fi
 
     # Step 10: Import the private key
     log "🔑 Enter your private key:"
