@@ -173,22 +173,12 @@ install_hyperspace_cli() {
 # Step 8: Proceed with downloading the required model
 log "🔄 Downloading the required model..."
 
-# Run the aios-cli command and parse its output for progress
-{
-    "$AIOS_CLI_PATH" models add hf:TheBloke/phi-2-GGUF:phi-2.Q4_K_M.gguf 2>&1 | \
-    while IFS= read -r line; do
-        # Check for progress in the output (adjust this based on actual aios-cli output)
-        if [[ "$line" =~ ([0-9]+)% ]]; then
-            progress="${BASH_REMATCH[1]}"
-            # Print a progress bar
-            printf "\r[%-50s] %d%%" "$(printf '#%.0s' $(seq 1 $((progress/2))))" "$progress"
-        fi
-    done
-    echo # New line after progress bar
-}
+# Define the model URL (replace with the actual URL if available)
+MODEL_URL="https://huggingface.co/TheBloke/phi-2-GGUF/resolve/main/phi-2.Q4_K_M.gguf"
 
-# Check if the download was successful
-if [[ $? -eq 0 ]]; then
+# Download the model using wget with live progress
+log "📥 Downloading model from $MODEL_URL..."
+if wget --progress=bar:force:noscroll -O /root/phi-2.Q4_K_M.gguf "$MODEL_URL"; then
     log "✅ Model downloaded successfully!"
 else
     log "❌ Model download failed."
