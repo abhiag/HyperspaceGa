@@ -328,8 +328,7 @@ while true; do
             check_hyperspace_status
             ;;
         5)
-            read -p "Enter the base directory of the node you want to uninstall: " base_dir
-            uninstall_hyperspace "$base_dir"
+            uninstall_hyperspace
             ;;
         6)
             read -p "Enter the base directory of the node you want to check points for: " base_dir
