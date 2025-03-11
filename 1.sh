@@ -233,6 +233,7 @@ show_menu() {
     echo "6. Check Hyper Points - Which node points you want to check?"
     echo "7. Exit"
     echo -e "===============================\n"
+    read -p "Enter your choice: " CHOICE
 }
 
     case $choice in
