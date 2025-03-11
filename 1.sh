@@ -89,6 +89,29 @@ is_port_in_use() {
     fi
 }
 
+# Function to log in to Hive with retry mechanism
+login_to_hive() {
+    local aios_cli_path=$1
+    local max_retries=5  # Maximum number of retries
+    local retry_delay=10 # Delay between retries in seconds
+    local retry_count=0
+
+    while [[ $retry_count -lt $max_retries ]]; do
+        log "🔐 Attempting to log in to Hive (Attempt $((retry_count + 1))/$max_retries)..."
+        if "$aios_cli_path" hive login; then
+            log "✅ Successfully logged in to Hive."
+            return 0
+        else
+            log "❌ Failed to log in to Hive. Retrying in $retry_delay seconds..."
+            sleep "$retry_delay"
+            retry_count=$((retry_count + 1))
+        fi
+    done
+
+    log "❌ Failed to log in to Hive after $max_retries attempts. Please check your credentials and try again."
+    return 1
+}
+
 # Function to install HyperSpace CLI and perform setup
 install_hyperspace_cli() {
     local base_dir=$1
@@ -202,13 +225,8 @@ install_hyperspace_cli() {
         exit 1
     fi
 
-    # Step 11: Log in to Hive
-    log "🔐 Logging into Hive..."
-    "$aios_cli_path" hive login
-    if [ $? -ne 0 ]; then
-        log "❌ Failed to log in to Hive. Please check the logs for more details."
-        exit 1
-    fi
+    # Step 11: Log in to Hive with retry mechanism
+    login_to_hive "$aios_cli_path" || exit 1
 
     # Step 12: Connect to Hive
     log "🌐 Connecting to Hive..."
