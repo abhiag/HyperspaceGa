@@ -23,12 +23,9 @@ EOF
     printf "   • X (formerly Twitter): https://x.com/GACryptoO\n"
     printf "${RESET}"
 
-#!/bin/bash
-
 # Configuration
 PRIVATE_KEY_FILE="$HOME/my.pem"
 AIOS_CLI_PATH="$HOME/.aios/aios-cli"
-SCREEN_SESSION="hyperspace"
 LOG_FILE="$HOME/hyperspace.log"
 
 # Function to log messages
@@ -39,7 +36,7 @@ log() {
 
 # Function to check for required tools and libraries
 check_dependencies() {
-    local dependencies=("curl" "bash" "screen")
+    local dependencies=("curl" "bash")
     local libraries=("libssl.so.3")
 
     log "🔍 Checking dependencies and libraries..."
@@ -90,7 +87,7 @@ install_hyperspace_cli() {
 
 # Function to start the HyperSpace node
 start_hyperspace_node() {
-    log "🚀 Starting the HyperSpace node in the background..."
+    log "🚀 Starting the HyperSpace node..."
     if "$AIOS_CLI_PATH" start; then
         log "✅ HyperSpace node started successfully!"
     else
