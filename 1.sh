@@ -112,6 +112,29 @@ login_to_hive() {
     return 1
 }
 
+# Function to stop process using a specific port
+stop_process_using_port() {
+    local port=$1
+    log "🔍 Checking if port $port is in use..."
+    if is_port_in_use "$port"; then
+        log "🛑 Port $port is in use. Stopping the process..."
+        local pid=$(lsof -ti :"$port")
+        if [[ -n "$pid" ]]; then
+            if kill "$pid" > /dev/null 2>&1; then
+                log "✅ Process using port $port (PID: $pid) stopped successfully."
+            else
+                log "❌ Failed to stop process using port $port (PID: $pid)."
+                return 1
+            fi
+        else
+            log "❌ No process found using port $port."
+            return 1
+        fi
+    else
+        log "✅ Port $port is available."
+    fi
+}
+
 # Function to install HyperSpace CLI and perform setup
 install_hyperspace_cli() {
     local base_dir=$1
@@ -122,6 +145,9 @@ install_hyperspace_cli() {
     log "🚀 Installing HyperSpace CLI in $base_dir..."
     mkdir -p "$base_dir"
     cd "$base_dir" || exit 1
+
+    # Step 1: Stop process using the port if it's already in use
+    stop_process_using_port "$port" || exit 1
 
     log "🔍 Running installation script..."
     if curl -s https://download.hyper.space/api/install | bash; then
