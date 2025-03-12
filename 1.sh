@@ -267,7 +267,7 @@ stop_hyperspace_node() {
     log "🛑 Stopping HyperSpace node..."
 
     # List active nodes
-    list_active_nodes || return 1
+    list_installed_nodes || return 1
 
     # Prompt the user to select a node to stop
     read -p "Enter the number of the node you want to stop: " node_number
