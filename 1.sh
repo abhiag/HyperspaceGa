@@ -370,7 +370,7 @@ show_menu() {
     echo -e "\n===== HyperSpace Node Manager ====="
     echo "1. Install HyperSpace - How many nodes you want to install"
     echo "2. Restart HyperSpace Node"
-    echo "3. Stop HyperSpace Node - Stop node according to active ports"
+    echo "3. Stop HyperSpace Node"
     echo "4. Check HyperSpace Node Status - Show the active ports"
     echo "5. Uninstall HyperSpace?"
     echo "6. Check Hyper Points - Which node points you want to check?"
