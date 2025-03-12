@@ -264,17 +264,35 @@ restart_hyperspace_node() {
 
 # Function to stop a HyperSpace node
 stop_hyperspace_node() {
-    local port=$1
-    local base_dir=$(echo "${NODES[@]}" | grep -oP "$port:\K[^:]+")
-    local aios_cli_path="$base_dir/.aios/aios-cli"
+    log "🛑 Stopping HyperSpace node..."
 
-    log "🛑 Stopping HyperSpace node on port $port..."
-    "$aios_cli_path" stop
-    if [ $? -eq 0 ]; then
-        log "✅ HyperSpace node on port $port stopped successfully!"
-    else
-        log "❌ Failed to stop HyperSpace node on port $port."
+    # List active nodes
+    list_active_nodes || return 1
+
+    # Prompt the user to select a node to stop
+    read -p "Enter the number of the node you want to stop: " node_number
+    if [[ ! "$node_number" =~ ^[0-9]+$ ]] || [ "$node_number" -lt 1 ] || [ "$node_number" -gt "${#NODES[@]}" ]; then
+        log "❌ Invalid selection. Please enter a valid number."
+        return 1
     fi
+
+    # Get the selected node details
+    local selected_node="${NODES[$((node_number-1))]}"
+    local base_dir=$(echo "$selected_node" | cut -d: -f1)
+    local port=$(echo "$selected_node" | cut -d: -f2)
+    local pid=$(echo "$selected_node" | cut -d: -f3)
+
+    # Stop the node
+    log "🛑 Stopping the HyperSpace node in $base_dir (Port: $port)..."
+    if kill "$pid" > /dev/null 2>&1; then
+        log "✅ HyperSpace node in $base_dir (Port: $port) stopped successfully."
+    else
+        log "❌ Failed to stop the HyperSpace node in $base_dir (Port: $port). It may already be stopped."
+    fi
+
+    # Remove the node from the NODES array
+    NODES=("${NODES[@]:0:$((node_number-1))}" "${NODES[@]:$node_number}")
+    log "✅ Node removed from the active nodes list."
 }
 
 # Function to check HyperSpace node status
@@ -382,8 +400,7 @@ while true; do
             restart_hyperspace_node "$port"
             ;;
         3)
-            read -p "Enter the port of the node you want to stop: " port
-            stop_hyperspace_node "$port"
+            stop_hyperspace_node
             ;;
         4)
             check_hyperspace_status
