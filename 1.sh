@@ -394,7 +394,7 @@ list_installed_nodes() {
 # Function to display the menu
 show_menu() {
     echo -e "\n===== HyperSpace Node Manager ====="
-    echo "1. Install HyperSpace - How many nodes you want to install"
+    echo "1. Install HyperSpace"
     echo "2. Restart HyperSpace Node"
     echo "3. Stop HyperSpace Node"
     echo "4. Check HyperSpace Node Status - Show the active ports"
